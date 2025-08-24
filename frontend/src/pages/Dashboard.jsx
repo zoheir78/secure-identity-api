@@ -9,18 +9,17 @@ export default function Dashboard() {
   const [identityData, setIdentityData] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const username = localStorage.getItem("username");
   const token = localStorage.getItem("access");
+  const username = localStorage.getItem("username"); 
+  const profileId = localStorage.getItem("profileId");
 
   // Fetch contexts when component mounts
   useEffect(() => {
-    if (!username || !token) return;
+    if (!profileId || !token) return;
 
     axios
-      .get(`http://127.0.0.1:8081/api/identity/${username}/contexts/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      .get(`http://127.0.0.1:8081/api/profiles/${profileId}/contexts/`, {
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
         setContexts(res.data.contexts);
@@ -31,22 +30,20 @@ export default function Dashboard() {
       .catch((err) => {
         console.error("Error fetching contexts:", err);
       });
-  }, [username, token]);
+  }, [profileId, token]);
 
   // Fetch identity info whenever selectedContext changes
   useEffect(() => {
-    if (!selectedContext || !username || !token) return;
+    if (!selectedContext || !profileId || !token) return;
 
     setLoading(true);
     axios
       .get(
-        `http://127.0.0.1:8081/api/identity/${username}/${encodeURIComponent(
+        `http://127.0.0.1:8081/api/profiles/${profileId}/identity/?context=${encodeURIComponent(
           selectedContext
-        )}/`,
+        )}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       )
       .then((res) => {
@@ -56,12 +53,10 @@ export default function Dashboard() {
         console.error("Error fetching identity data:", err);
       })
       .finally(() => setLoading(false));
-  }, [selectedContext, username, token]);
+  }, [selectedContext, profileId, token]);
 
   const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    localStorage.removeItem("username");
+    localStorage.clear();
     window.location.href = "/login";
   };
 
@@ -120,22 +115,15 @@ export default function Dashboard() {
         Logout
       </button>
 
-      {/* {isAdmin && (
+      {/* Admin Button */}
+      {isAdmin && (
         <button
           onClick={() => (window.location.href = "/admin-dashboard")}
           style={{ marginLeft: "10px" }}
-  >
-          Admin Rules
-        </button>
-      )} */}
-
-      {isAdmin && (
-        <button onClick={() => (window.location.href = "/admin-dashboard")}>
+        >
           Admin Rules
         </button>
       )}
-
-
     </div>
   );
 }

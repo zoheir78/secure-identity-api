@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 
 class IdentityProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    legal_name = models.CharField(max_length=255)
-    preferred_name = models.CharField(max_length=255)
-    username = models.CharField(max_length=255)
+    legal_name = models.CharField(max_length=255, blank=True)
+    preferred_name = models.CharField(max_length=255, blank=True)
+    # Avoid duplicating auth username; this is the "display" username for contexts like forums.
+    display_username = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -23,7 +24,10 @@ class VisibilityRule(models.Model):
     context = models.CharField(max_length=50, choices=CONTEXT_CHOICES)
     show_legal_name = models.BooleanField(default=False)
     show_preferred_name = models.BooleanField(default=False)
-    show_username = models.BooleanField(default=False)
+    show_username = models.BooleanField(default=False)  # refers to display_username
+
+    class Meta:
+        unique_together = ("profile", "context")  # prevent duplicate rules per context
 
     def __str__(self):
         return f"{self.profile.user.username} - {self.context}"

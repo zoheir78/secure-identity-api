@@ -1,81 +1,13 @@
-# from django.urls import path
-# from .views import (
-#     get_identity_by_context,
-#     list_user_contexts,
-#     list_all_users,
-#     user_visibility_rules,
-# )
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import IdentityProfileViewSet, VisibilityRuleViewSet, UserViewSet, current_user
 
-# urlpatterns = [
-#     path(
-#         "identity/<str:username>/contexts/",
-#         list_user_contexts,
-#         name="list_user_contexts",
-#     ),
-#     path(
-#         "identity/<str:username>/<str:context>/",
-#         get_identity_by_context,
-#         name="get_identity_by_context",
-#     ),
-# ]
-
-# from django.urls import path
-# from .views import (
-#     get_identity_by_context,
-#     list_user_contexts,
-#     list_all_users,
-#     user_visibility_rules,
-# )
-
-# urlpatterns = [
-#     path(
-#         "identity/<str:username>/contexts/",
-#         list_user_contexts,
-#         name="list_user_contexts",
-#     ),
-#     path(
-#         "identity/<str:username>/<str:context>/",
-#         get_identity_by_context,
-#         name="get_identity_by_context",
-#     ),
-#     path("users/", list_all_users, name="list_all_users"),
-#     path(
-#         "visibility-rules/<str:username>/",
-#         user_visibility_rules,
-#         name="user_visibility_rules",
-#     ),
-# ]
-
-
-from django.urls import path
-from .views import (
-    get_identity_by_context,
-    list_user_contexts,
-    list_all_users,
-    user_visibility_rules,
-    get_user_info,
-)
+router = DefaultRouter()
+router.register(r'profiles', IdentityProfileViewSet, basename='profiles')
+router.register(r'rules', VisibilityRuleViewSet, basename='rules')
+router.register(r'users', UserViewSet, basename='users')
 
 urlpatterns = [
-    path(
-        "identity/<str:username>/contexts/",
-        list_user_contexts,
-        name="list_user_contexts",
-    ),
-    path(
-        "identity/<str:username>/<str:context>/",
-        get_identity_by_context,
-        name="get_identity_by_context",
-    ),
-    path(
-        "admin/users/",
-        list_all_users,
-        name="list_all_users",
-    ),
-    path(
-        "admin/users/<str:username>/rules/",
-        user_visibility_rules,
-        name="user_visibility_rules",
-    ),
-    path("user/<str:username>/info/", get_user_info, name="get_user_info"),
+    path('', include(router.urls)),        #  /api/profiles/, /api/rules/, /api/users/
+    path('me/', current_user, name="me"),  #  /api/me/
 ]

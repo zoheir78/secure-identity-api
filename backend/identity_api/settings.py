@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "django_filters",
     "rest_framework",
     "core",  # my application
     "rest_framework_simplejwt",
@@ -128,14 +129,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True  # for dev only, later restrict to frontend URL
 
-# Later, for production, you can replace it with:
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",  # React dev server (Vite default)
-# ]
+
 
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
 }

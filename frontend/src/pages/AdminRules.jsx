@@ -3,38 +3,37 @@ import axios from "axios";
 
 export default function AdminRules() {
   const accessToken = localStorage.getItem("access");
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState("");
+  const [profiles, setProfiles] = useState([]);
+  const [selectedProfile, setSelectedProfile] = useState("");
   const [rules, setRules] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
 
-
-  // Fetch user list on page load
+  // Fetch all profiles on page load
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8081/api/admin/users/", {
+      .get("http://127.0.0.1:8081/api/profiles/", {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((res) => {
-        setUsers(res.data);
+        setProfiles(res.data);
         if (res.data.length > 0) {
-          setSelectedUser(res.data[0].username);
+          setSelectedProfile(res.data[0].id); // use profile.id 
         }
       });
   }, [accessToken]);
 
-  // Fetch visibility rules when selectedUser changes
+  // Fetch visibility rules when selectedProfile changes
   useEffect(() => {
-    if (!selectedUser) return;
+    if (!selectedProfile) return;
     axios
       .get(
-        `http://127.0.0.1:8081/api/admin/users/${selectedUser}/rules/`,
+        `http://127.0.0.1:8081/api/rules/?profile=${selectedProfile}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       )
       .then((res) => {
         setRules(res.data);
       });
-  }, [selectedUser, accessToken]);
+  }, [selectedProfile, accessToken]);
 
   // Handle checkbox toggle
   const handleToggle = (ruleId, field) => {
@@ -45,37 +44,36 @@ export default function AdminRules() {
     );
   };
 
-  // Save rules (PUT)
+  // Save rules (PUT each rule)
   const handleSave = () => {
-    axios
-        .put(
-        `http://127.0.0.1:8081/api/admin/users/${selectedUser}/rules/`,
-        rules,
+    const updates = rules.map((rule) =>
+      axios.put(
+        `http://127.0.0.1:8081/api/rules/${rule.id}/`,
+        rule,
         { headers: { Authorization: `Bearer ${accessToken}` } }
-        )
-        .then(() => {
-        setSuccessMessage("Changes saved successfully");
+      )
+    );
 
-        // Clear the message after 3 seconds
-        setTimeout(() => setSuccessMessage(""), 3000);
-        });
-    };
-
+    Promise.all(updates).then(() => {
+      setSuccessMessage("Changes saved successfully");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    });
+  };
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Admin – Manage Visibility Rules</h2>
 
-      {/* Select User */}
+      {/* Select Profile */}
       <div>
-        <label>Select User: </label>
+        <label>Select Profile: </label>
         <select
-          value={selectedUser}
-          onChange={(e) => setSelectedUser(e.target.value)}
+          value={selectedProfile}
+          onChange={(e) => setSelectedProfile(e.target.value)}
         >
-          {users.map((u) => (
-            <option key={u.username} value={u.username}>
-              {u.username}
+          {profiles.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.user.username} (Profile ID: {p.id})
             </option>
           ))}
         </select>
@@ -129,13 +127,10 @@ export default function AdminRules() {
 
       <button
         style={{ marginLeft: "10px" }}
-        onClick={() => (window.location.href = "/dashboard")}>
+        onClick={() => (window.location.href = "/dashboard")}
+      >
         Back to Dashboard
       </button>
-
-
-
-
     </div>
   );
 }
